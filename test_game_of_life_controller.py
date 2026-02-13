@@ -171,7 +171,8 @@ class TestGameOfLifeController(unittest.TestCase):
         self.controller.is_running = False
         
         # Click on a cell in the grid
-        pos = (55, 55)  # Should map to cell (5, 5)
+        # Account for grid offset when calculating screen position
+        pos = (self.controller.view.grid_offset_x + 55, 55)  # Should map to cell (5, 5)
         
         self.assertEqual(self.controller.engine.get_cell(5, 5), 0)
         
@@ -183,7 +184,8 @@ class TestGameOfLifeController(unittest.TestCase):
         """Test that clicking a cell doesn't toggle it when running."""
         self.controller.is_running = True
         
-        pos = (55, 55)
+        # Account for grid offset when calculating screen position
+        pos = (self.controller.view.grid_offset_x + 55, 55)
         
         self.assertEqual(self.controller.engine.get_cell(5, 5), 0)
         

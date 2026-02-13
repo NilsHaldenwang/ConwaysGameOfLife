@@ -42,11 +42,19 @@ class TestGameOfLifeView(unittest.TestCase):
         self.assertEqual(self.view.cell_size, 10)
         
         # Check calculated dimensions
-        expected_width = 20 * 10  # cols * cell_size
+        # For a 20x20 grid with cell_size=10, grid_width=200
+        # min_width should be 470 (calculated from buttons)
+        # screen_width should be max(200, 470) = 470
         expected_height = 20 * 10 + 80  # rows * cell_size + ui_height
         
-        self.assertEqual(self.view.screen_width, expected_width)
+        self.assertEqual(self.view.min_width, 470)
+        self.assertEqual(self.view.screen_width, 470)  # Uses min_width
         self.assertEqual(self.view.screen_height, expected_height)
+        
+        # Check grid offset (grid should be centered)
+        # grid_width = 200, screen_width = 470
+        # offset = (470 - 200) // 2 = 135
+        self.assertEqual(self.view.grid_offset_x, 135)
     
     def test_initialization_custom_cell_size(self):
         """Test initialization with custom cell size."""
@@ -56,28 +64,65 @@ class TestGameOfLifeView(unittest.TestCase):
         self.assertEqual(view.grid_cols, 30)
         self.assertEqual(view.cell_size, 15)
         
-        expected_width = 30 * 15
+        # For a 30x30 grid with cell_size=15, grid_width=450
+        # min_width is 470, so screen_width should be 470
         expected_height = 30 * 15 + 80
         
-        self.assertEqual(view.screen_width, expected_width)
+        self.assertEqual(view.min_width, 470)
+        self.assertEqual(view.screen_width, 470)  # Uses min_width
         self.assertEqual(view.screen_height, expected_height)
+        
+        # grid_offset should be (470 - 450) // 2 = 10
+        self.assertEqual(view.grid_offset_x, 10)
         
         view.cleanup()
     
     def test_update_grid_dimensions(self):
         """Test updating grid dimensions resizes the window."""
-        # Update to new dimensions
-        self.view.update_grid_dimensions(40, 40)
+        # Update to larger dimensions (should use actual grid width)
+        self.view.update_grid_dimensions(60, 60)
         
-        self.assertEqual(self.view.grid_rows, 40)
-        self.assertEqual(self.view.grid_cols, 40)
+        self.assertEqual(self.view.grid_rows, 60)
+        self.assertEqual(self.view.grid_cols, 60)
         
-        # Check recalculated dimensions
-        expected_width = 40 * 10
-        expected_height = 40 * 10 + 80
+        # For 60x60 grid with cell_size=10, grid_width=600
+        # This exceeds min_width=470, so screen_width should be 600
+        expected_height = 60 * 10 + 80
         
-        self.assertEqual(self.view.screen_width, expected_width)
+        self.assertEqual(self.view.screen_width, 600)  # Uses grid width
         self.assertEqual(self.view.screen_height, expected_height)
+        
+        # No offset needed when grid is wider than min_width
+        self.assertEqual(self.view.grid_offset_x, 0)
+        
+        # Now update to smaller dimensions (should use min_width)
+        self.view.update_grid_dimensions(10, 10)
+        
+        self.assertEqual(self.view.grid_rows, 10)
+        self.assertEqual(self.view.grid_cols, 10)
+        
+        # For 10x10 grid with cell_size=10, grid_width=100
+        # This is less than min_width=470, so screen_width should be 470
+        expected_height = 10 * 10 + 80
+        
+        self.assertEqual(self.view.screen_width, 470)  # Uses min_width
+        self.assertEqual(self.view.screen_height, expected_height)
+        
+        # Grid should be centered: (470 - 100) // 2 = 185
+        self.assertEqual(self.view.grid_offset_x, 185)
+    
+    def test_minimum_width_enforcement(self):
+        """Test that minimum width is always enforced for small grids."""
+        # Create a very small grid
+        small_view = GameOfLifeView(5, 5, cell_size=10)
+        
+        # Grid width is only 50 pixels, but window should be at least 470
+        self.assertEqual(small_view.screen_width, 470)
+        
+        # Grid should be centered: (470 - 50) // 2 = 210
+        self.assertEqual(small_view.grid_offset_x, 210)
+        
+        small_view.cleanup()
     
     def test_button_rectangles_exist(self):
         """Test that all button rectangles are created."""
@@ -123,16 +168,24 @@ class TestGameOfLifeView(unittest.TestCase):
     
     def test_get_clicked_cell_valid(self):
         """Test converting mouse click to grid coordinates."""
-        # Click at position (55, 55) with cell_size=10
-        # Should map to cell (5, 5)
-        cell = self.view.get_clicked_cell((55, 55))
+        # For our 20x20 grid with cell_size=10:
+        # screen_width=470, grid_width=200, grid_offset_x=135
+        
+        # Click at grid position (5, 5) considering offset
+        # Cell (5, 5) is at screen position: offset + 5*cell_size = 135 + 50 = 185
+        click_x = self.view.grid_offset_x + 55  # offset + cell position
+        click_y = 55
+        cell = self.view.get_clicked_cell((click_x, click_y))
         
         self.assertIsNotNone(cell)
         self.assertEqual(cell, (5, 5))
     
     def test_get_clicked_cell_top_left(self):
         """Test clicking on the top-left cell."""
-        cell = self.view.get_clicked_cell((0, 0))
+        # Top-left cell (0, 0) starts at grid_offset_x
+        click_x = self.view.grid_offset_x + 5  # Inside first cell
+        click_y = 5
+        cell = self.view.get_clicked_cell((click_x, click_y))
         
         self.assertIsNotNone(cell)
         self.assertEqual(cell, (0, 0))
@@ -140,8 +193,11 @@ class TestGameOfLifeView(unittest.TestCase):
     def test_get_clicked_cell_bottom_right(self):
         """Test clicking on the bottom-right cell."""
         # Last cell is at (19, 19) for a 20x20 grid
-        # With cell_size=10, this is at position (190-199, 190-199)
-        cell = self.view.get_clicked_cell((195, 195))
+        # With cell_size=10, this is at grid position (190-199, 190-199)
+        # Plus grid_offset_x for screen position
+        click_x = self.view.grid_offset_x + 195
+        click_y = 195
+        cell = self.view.get_clicked_cell((click_x, click_y))
         
         self.assertIsNotNone(cell)
         self.assertEqual(cell, (19, 19))
@@ -154,6 +210,21 @@ class TestGameOfLifeView(unittest.TestCase):
         
         self.assertIsNone(cell)
     
+    def test_get_clicked_cell_in_margin(self):
+        """Test that clicking in the left margin (before grid) returns None."""
+        # Click in the left margin area (before grid_offset_x)
+        cell = self.view.get_clicked_cell((10, 10))  # x=10 is before offset=135
+        
+        self.assertIsNone(cell)
+    
+    def test_get_clicked_cell_in_right_margin(self):
+        """Test that clicking in the right margin (after grid) returns None."""
+        # Click after the grid ends
+        # Grid ends at: grid_offset_x + grid_width = 135 + 200 = 335
+        cell = self.view.get_clicked_cell((400, 10))  # x=400 is after grid
+        
+        self.assertIsNone(cell)
+    
     def test_get_clicked_cell_negative_coordinates(self):
         """Test that negative coordinates return None."""
         cell = self.view.get_clicked_cell((-10, 10))
@@ -161,6 +232,18 @@ class TestGameOfLifeView(unittest.TestCase):
         
         cell = self.view.get_clicked_cell((10, -10))
         self.assertIsNone(cell)
+    
+    def test_grid_offset_large_grid(self):
+        """Test that grid_offset_x is 0 for large grids."""
+        # Create a large grid that exceeds min_width
+        large_view = GameOfLifeView(60, 60, cell_size=10)
+        
+        # Grid width = 600, which is > min_width = 470
+        # So offset should be 0 (no centering needed)
+        self.assertEqual(large_view.grid_offset_x, 0)
+        self.assertEqual(large_view.screen_width, 600)
+        
+        large_view.cleanup()
     
     def test_update_hover_state_start_button(self):
         """Test hover state detection for start button."""
