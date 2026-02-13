@@ -1,0 +1,295 @@
+"""
+Game of Life Visualization Module
+
+This module implements the visualization layer using PyGame. It follows the
+Model-View-Controller (MVC) pattern, where this class represents the View.
+
+The visualization is responsible only for rendering the game state and UI elements,
+not for game logic or state management.
+"""
+
+import pygame
+from typing import Tuple, Optional
+import numpy as np
+
+
+class GameOfLifeView:
+    """
+    PyGame-based visualization for Conway's Game of Life.
+    
+    This class handles all rendering concerns including the grid display,
+    UI buttons, and user interactions. It is completely separated from
+    the game logic (Separation of Concerns).
+    
+    Attributes:
+        screen_width (int): Width of the game window in pixels
+        screen_height (int): Height of the game window in pixels
+        cell_size (int): Size of each cell in pixels
+        ui_height (int): Height reserved for UI controls
+        screen: PyGame display surface
+        clock: PyGame clock for framerate control
+        colors (dict): Color scheme for the visualization
+    """
+    
+    # Color scheme constants
+    COLORS = {
+        'background': (20, 20, 20),      # Dark background
+        'grid_line': (50, 50, 50),       # Grid lines
+        'dead_cell': (30, 30, 30),       # Dead cells
+        'alive_cell': (0, 255, 100),     # Alive cells (bright green)
+        'button': (60, 60, 60),          # Button background
+        'button_hover': (80, 80, 80),    # Button hover state
+        'button_text': (255, 255, 255),  # Button text
+        'ui_background': (40, 40, 40),   # UI panel background
+    }
+    
+    def __init__(self, grid_rows: int, grid_cols: int, cell_size: int = 15):
+        """
+        Initialize the PyGame visualization.
+        
+        Args:
+            grid_rows: Number of rows in the game grid
+            grid_cols: Number of columns in the game grid
+            cell_size: Size of each cell in pixels (default: 15)
+        """
+        pygame.init()
+        
+        self.grid_rows = grid_rows
+        self.grid_cols = grid_cols
+        self.cell_size = cell_size
+        self.ui_height = 80  # Height for control buttons
+        
+        # Calculate window dimensions
+        self.screen_width = grid_cols * cell_size
+        self.screen_height = grid_rows * cell_size + self.ui_height
+        
+        # Create the display window
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        pygame.display.set_caption("Conway's Game of Life - Educational Demo")
+        
+        # Clock for controlling framerate
+        self.clock = pygame.time.Clock()
+        
+        # Initialize font for UI text
+        self.font = pygame.font.Font(None, 28)
+        self.small_font = pygame.font.Font(None, 20)
+        
+        # Button definitions (x, y, width, height, text)
+        button_y = grid_rows * cell_size + 15
+        button_height = 40
+        button_spacing = 10
+        
+        self.start_button = pygame.Rect(20, button_y, 100, button_height)
+        self.pause_button = pygame.Rect(130, button_y, 100, button_height)
+        self.load_button = pygame.Rect(240, button_y, 100, button_height)
+        self.clear_button = pygame.Rect(350, button_y, 100, button_height)
+        
+        # Track which button is currently hovered
+        self.hovered_button = None
+    
+    def update_grid_dimensions(self, rows: int, cols: int) -> None:
+        """
+        Update the grid dimensions and resize the window accordingly.
+        
+        This is called when a new pattern is loaded with different dimensions.
+        
+        Args:
+            rows: New number of rows
+            cols: New number of columns
+        """
+        self.grid_rows = rows
+        self.grid_cols = cols
+        
+        # Recalculate window dimensions
+        self.screen_width = cols * self.cell_size
+        self.screen_height = rows * self.cell_size + self.ui_height
+        
+        # Resize the window
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        
+        # Reposition buttons to fit new width
+        button_y = rows * self.cell_size + 15
+        button_height = 40
+        
+        self.start_button.y = button_y
+        self.pause_button.y = button_y
+        self.load_button.y = button_y
+        self.clear_button.y = button_y
+    
+    def draw_grid(self, grid: np.ndarray) -> None:
+        """
+        Draw the game grid with cells and grid lines.
+        
+        Args:
+            grid: 2D NumPy array representing the current game state
+        """
+        # Fill background
+        grid_surface_height = self.grid_rows * self.cell_size
+        pygame.draw.rect(self.screen, self.COLORS['background'], 
+                        (0, 0, self.screen_width, grid_surface_height))
+        
+        # Draw cells
+        for row in range(self.grid_rows):
+            for col in range(self.grid_cols):
+                x = col * self.cell_size
+                y = row * self.cell_size
+                
+                # Choose color based on cell state
+                color = self.COLORS['alive_cell'] if grid[row, col] == 1 else self.COLORS['dead_cell']
+                
+                # Draw the cell
+                pygame.draw.rect(self.screen, color, 
+                               (x, y, self.cell_size, self.cell_size))
+                
+                # Draw grid line (border)
+                pygame.draw.rect(self.screen, self.COLORS['grid_line'], 
+                               (x, y, self.cell_size, self.cell_size), 1)
+    
+    def draw_button(self, rect: pygame.Rect, text: str, is_active: bool = True) -> None:
+        """
+        Draw a single UI button.
+        
+        Args:
+            rect: Rectangle defining button position and size
+            text: Text to display on the button
+            is_active: Whether the button is in active state
+        """
+        # Determine button color based on hover state
+        color = self.COLORS['button_hover'] if rect == self.hovered_button else self.COLORS['button']
+        
+        # Draw button background
+        pygame.draw.rect(self.screen, color, rect, border_radius=5)
+        pygame.draw.rect(self.screen, self.COLORS['button_text'], rect, 2, border_radius=5)
+        
+        # Draw button text (centered)
+        text_surface = self.font.render(text, True, self.COLORS['button_text'])
+        text_rect = text_surface.get_rect(center=rect.center)
+        self.screen.blit(text_surface, text_rect)
+    
+    def draw_ui(self, is_running: bool, generation: int, filename: Optional[str] = None) -> None:
+        """
+        Draw the UI control panel with buttons and status information.
+        
+        Args:
+            is_running: Whether the simulation is currently running
+            generation: Current generation number
+            filename: Name of the loaded pattern file (if any)
+        """
+        # Draw UI background
+        ui_y = self.grid_rows * self.cell_size
+        pygame.draw.rect(self.screen, self.COLORS['ui_background'], 
+                        (0, ui_y, self.screen_width, self.ui_height))
+        
+        # Draw buttons
+        self.draw_button(self.start_button, "Start")
+        self.draw_button(self.pause_button, "Pause")
+        self.draw_button(self.load_button, "Load")
+        self.draw_button(self.clear_button, "Clear")
+        
+        # Draw generation counter
+        gen_text = f"Generation: {generation}"
+        gen_surface = self.small_font.render(gen_text, True, self.COLORS['button_text'])
+        self.screen.blit(gen_surface, (self.screen_width - 150, ui_y + 10))
+        
+        # Draw running status
+        status_text = "Running" if is_running else "Paused"
+        status_surface = self.small_font.render(status_text, True, self.COLORS['button_text'])
+        self.screen.blit(status_surface, (self.screen_width - 150, ui_y + 35))
+        
+        # Draw loaded filename if available
+        if filename:
+            file_text = f"Pattern: {filename}"
+            file_surface = self.small_font.render(file_text, True, self.COLORS['button_text'])
+            self.screen.blit(file_surface, (20, ui_y + 60))
+    
+    def render(self, grid: np.ndarray, is_running: bool, generation: int, 
+               filename: Optional[str] = None) -> None:
+        """
+        Render the complete frame including grid and UI.
+        
+        This is the main rendering method that should be called each frame.
+        
+        Args:
+            grid: Current game state
+            is_running: Whether simulation is running
+            generation: Current generation number
+            filename: Loaded pattern filename (optional)
+        """
+        self.draw_grid(grid)
+        self.draw_ui(is_running, generation, filename)
+        pygame.display.flip()
+    
+    def update_hover_state(self, mouse_pos: Tuple[int, int]) -> None:
+        """
+        Update which button is currently being hovered over.
+        
+        Args:
+            mouse_pos: Current mouse position (x, y)
+        """
+        buttons = [self.start_button, self.pause_button, self.load_button, self.clear_button]
+        self.hovered_button = None
+        
+        for button in buttons:
+            if button.collidepoint(mouse_pos):
+                self.hovered_button = button
+                break
+    
+    def get_clicked_button(self, mouse_pos: Tuple[int, int]) -> Optional[str]:
+        """
+        Determine which button was clicked based on mouse position.
+        
+        Args:
+            mouse_pos: Position where mouse was clicked
+            
+        Returns:
+            String identifier of clicked button or None
+        """
+        if self.start_button.collidepoint(mouse_pos):
+            return "start"
+        elif self.pause_button.collidepoint(mouse_pos):
+            return "pause"
+        elif self.load_button.collidepoint(mouse_pos):
+            return "load"
+        elif self.clear_button.collidepoint(mouse_pos):
+            return "clear"
+        return None
+    
+    def get_clicked_cell(self, mouse_pos: Tuple[int, int]) -> Optional[Tuple[int, int]]:
+        """
+        Convert mouse click position to grid cell coordinates.
+        
+        This allows users to toggle cells by clicking on them.
+        
+        Args:
+            mouse_pos: Position where mouse was clicked
+            
+        Returns:
+            Tuple of (row, col) or None if clicked outside grid
+        """
+        x, y = mouse_pos
+        
+        # Check if click is within grid area
+        grid_height = self.grid_rows * self.cell_size
+        if 0 <= x < self.screen_width and 0 <= y < grid_height:
+            col = x // self.cell_size
+            row = y // self.cell_size
+            return (row, col)
+        
+        return None
+    
+    def tick(self, fps: int = 10) -> None:
+        """
+        Control the framerate of the visualization.
+        
+        Args:
+            fps: Target frames per second
+        """
+        self.clock.tick(fps)
+    
+    def cleanup(self) -> None:
+        """
+        Clean up PyGame resources.
+        
+        Should be called when the application is closing.
+        """
+        pygame.quit()
