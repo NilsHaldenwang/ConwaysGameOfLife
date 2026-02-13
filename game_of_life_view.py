@@ -59,9 +59,28 @@ class GameOfLifeView:
         self.cell_size = cell_size
         self.ui_height = 80  # Height for control buttons
         
-        # Calculate window dimensions
-        self.screen_width = grid_cols * cell_size
+        # Button dimensions
+        self.button_width = 100
+        self.button_height = 40
+        self.button_spacing = 10
+        self.button_margin = 20  # Left margin for first button
+        
+        # Calculate minimum width needed for all buttons
+        # 4 buttons × 100px + 3 spaces × 10px + 2 margins × 20px = 470px
+        num_buttons = 4
+        self.min_width = (num_buttons * self.button_width + 
+                         (num_buttons - 1) * self.button_spacing + 
+                         2 * self.button_margin)
+        
+        # Calculate actual grid width
+        grid_width = grid_cols * cell_size
+        
+        # Use the larger of grid width or minimum UI width
+        self.screen_width = max(grid_width, self.min_width)
         self.screen_height = grid_rows * cell_size + self.ui_height
+        
+        # Calculate grid offset to center it if screen is wider than grid
+        self.grid_offset_x = (self.screen_width - grid_width) // 2
         
         # Create the display window
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
@@ -74,18 +93,32 @@ class GameOfLifeView:
         self.font = pygame.font.Font(None, 28)
         self.small_font = pygame.font.Font(None, 20)
         
-        # Button definitions (x, y, width, height, text)
+        # Create buttons with proper spacing
         button_y = grid_rows * cell_size + 15
-        button_height = 40
-        button_spacing = 10
-        
-        self.start_button = pygame.Rect(20, button_y, 100, button_height)
-        self.pause_button = pygame.Rect(130, button_y, 100, button_height)
-        self.load_button = pygame.Rect(240, button_y, 100, button_height)
-        self.clear_button = pygame.Rect(350, button_y, 100, button_height)
+        self._create_buttons(button_y)
         
         # Track which button is currently hovered
         self.hovered_button = None
+    
+    def _create_buttons(self, button_y: int) -> None:
+        """
+        Create button rectangles with proper layout.
+        
+        Args:
+            button_y: Y-coordinate for the buttons
+        """
+        x_pos = self.button_margin
+        
+        self.start_button = pygame.Rect(x_pos, button_y, self.button_width, self.button_height)
+        x_pos += self.button_width + self.button_spacing
+        
+        self.pause_button = pygame.Rect(x_pos, button_y, self.button_width, self.button_height)
+        x_pos += self.button_width + self.button_spacing
+        
+        self.load_button = pygame.Rect(x_pos, button_y, self.button_width, self.button_height)
+        x_pos += self.button_width + self.button_spacing
+        
+        self.clear_button = pygame.Rect(x_pos, button_y, self.button_width, self.button_height)
     
     def update_grid_dimensions(self, rows: int, cols: int) -> None:
         """
@@ -100,25 +133,28 @@ class GameOfLifeView:
         self.grid_rows = rows
         self.grid_cols = cols
         
-        # Recalculate window dimensions
-        self.screen_width = cols * self.cell_size
+        # Calculate actual grid width
+        grid_width = cols * self.cell_size
+        
+        # Use the larger of grid width or minimum UI width
+        self.screen_width = max(grid_width, self.min_width)
         self.screen_height = rows * self.cell_size + self.ui_height
+        
+        # Calculate grid offset to center it if screen is wider than grid
+        self.grid_offset_x = (self.screen_width - grid_width) // 2
         
         # Resize the window
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         
-        # Reposition buttons to fit new width
+        # Recreate buttons with proper positions
         button_y = rows * self.cell_size + 15
-        button_height = 40
-        
-        self.start_button.y = button_y
-        self.pause_button.y = button_y
-        self.load_button.y = button_y
-        self.clear_button.y = button_y
+        self._create_buttons(button_y)
     
     def draw_grid(self, grid: np.ndarray) -> None:
         """
         Draw the game grid with cells and grid lines.
+        
+        The grid is centered horizontally if it's narrower than the window.
         
         Args:
             grid: 2D NumPy array representing the current game state
@@ -128,10 +164,10 @@ class GameOfLifeView:
         pygame.draw.rect(self.screen, self.COLORS['background'], 
                         (0, 0, self.screen_width, grid_surface_height))
         
-        # Draw cells
+        # Draw cells (with horizontal offset for centering)
         for row in range(self.grid_rows):
             for col in range(self.grid_cols):
-                x = col * self.cell_size
+                x = self.grid_offset_x + col * self.cell_size
                 y = row * self.cell_size
                 
                 # Choose color based on cell state
@@ -259,6 +295,7 @@ class GameOfLifeView:
         Convert mouse click position to grid cell coordinates.
         
         This allows users to toggle cells by clicking on them.
+        Accounts for grid centering when window is wider than grid.
         
         Args:
             mouse_pos: Position where mouse was clicked
@@ -268,14 +305,24 @@ class GameOfLifeView:
         """
         x, y = mouse_pos
         
-        # Check if click is within grid area
+        # Check if click is within grid area (vertically)
         grid_height = self.grid_rows * self.cell_size
-        if 0 <= x < self.screen_width and 0 <= y < grid_height:
-            col = x // self.cell_size
-            row = y // self.cell_size
-            return (row, col)
+        if y < 0 or y >= grid_height:
+            return None
         
-        return None
+        # Account for horizontal grid offset (centering)
+        x_relative = x - self.grid_offset_x
+        
+        # Check if click is within grid area (horizontally)
+        grid_width = self.grid_cols * self.cell_size
+        if x_relative < 0 or x_relative >= grid_width:
+            return None
+        
+        # Convert to grid coordinates
+        col = x_relative // self.cell_size
+        row = y // self.cell_size
+        
+        return (row, col)
     
     def tick(self, fps: int = 10) -> None:
         """
