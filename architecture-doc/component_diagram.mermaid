@@ -1,0 +1,58 @@
+graph LR
+    subgraph "Detailed Component Architecture"
+        subgraph "Model - GameOfLifeEngine"
+            Grid["Grid State<br/>(NumPy Array)"]
+            Rules["Game Rules<br/>• Survival<br/>• Birth<br/>• Death"]
+            Neighbors["Neighbor Counting<br/>(Vectorized)"]
+            Loader["Pattern Loader"]
+        end
+        
+        subgraph "View - GameOfLifeView"
+            GridRender["Grid Renderer"]
+            UIRender["UI Renderer<br/>• Buttons<br/>• Status<br/>• Generation"]
+            EventDetect["Event Detection<br/>• Button Clicks<br/>• Cell Clicks"]
+            Display["PyGame Display"]
+        end
+        
+        subgraph "Controller - GameOfLifeController"
+            EventHandler["Event Handler"]
+            StateManager["State Manager<br/>• is_running<br/>• generation<br/>• loaded_file"]
+            Coordinator["Coordinator"]
+        end
+    end
+    
+    EventHandler --> StateManager
+    StateManager --> Coordinator
+    
+    Coordinator -->|"step()"| Rules
+    Coordinator -->|"get_grid_copy()"| Grid
+    Coordinator -->|"load_pattern()"| Loader
+    
+    Coordinator -->|"render(grid, state)"| GridRender
+    Coordinator -->|"render(grid, state)"| UIRender
+    
+    EventDetect -->|"button_id"| EventHandler
+    EventDetect -->|"cell_coords"| EventHandler
+    
+    Grid --> Neighbors
+    Neighbors --> Rules
+    Rules --> Grid
+    
+    GridRender --> Display
+    UIRender --> Display
+    
+    Loader -->|"updates"| Grid
+    
+    style Grid fill:#50C878,stroke:#2D7A4A,stroke-width:2px
+    style Rules fill:#50C878,stroke:#2D7A4A,stroke-width:2px
+    style Neighbors fill:#50C878,stroke:#2D7A4A,stroke-width:2px
+    style Loader fill:#50C878,stroke:#2D7A4A,stroke-width:2px
+    
+    style GridRender fill:#F39C12,stroke:#C87F0A,stroke-width:2px
+    style UIRender fill:#F39C12,stroke:#C87F0A,stroke-width:2px
+    style EventDetect fill:#F39C12,stroke:#C87F0A,stroke-width:2px
+    style Display fill:#F39C12,stroke:#C87F0A,stroke-width:2px
+    
+    style EventHandler fill:#4A90E2,stroke:#2E5C8A,stroke-width:2px
+    style StateManager fill:#4A90E2,stroke:#2E5C8A,stroke-width:2px
+    style Coordinator fill:#4A90E2,stroke:#2E5C8A,stroke-width:2px

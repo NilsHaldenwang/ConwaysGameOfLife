@@ -1,0 +1,63 @@
+graph TD
+    subgraph "Data Flow in Conway's Game of Life"
+        User["👤 User Input<br/>Mouse/Keyboard"]
+        
+        subgraph "Input Processing"
+            PyGame["PyGame Events"]
+            EventQ["Event Queue"]
+        end
+        
+        subgraph "Controller Processing"
+            EventHandler["Event Handler<br/>handle_events()"]
+            Commands["Commands<br/>• start()<br/>• pause()<br/>• clear()<br/>• load()"]
+        end
+        
+        subgraph "Model Processing"
+            CurrentGrid["Current Grid State<br/>NumPy Array (n×n)"]
+            NeighborCalc["Neighbor Calculation<br/>Vectorized Operations"]
+            RuleEngine["Rule Application<br/>Boolean Masks"]
+            NextGrid["Next Grid State<br/>NumPy Array (n×n)"]
+        end
+        
+        subgraph "View Processing"
+            GridData["Grid Copy<br/>get_grid_copy()"]
+            Rendering["Rendering Pipeline<br/>• Draw cells<br/>• Draw UI<br/>• Draw buttons"]
+            Screen["PyGame Screen<br/>Visual Output"]
+        end
+        
+        PatternFile["📁 Pattern File<br/>.txt format"]
+    end
+    
+    User -->|"Mouse/Keyboard"| PyGame
+    PyGame --> EventQ
+    EventQ --> EventHandler
+    EventHandler --> Commands
+    
+    Commands -->|"Control Flow"| CurrentGrid
+    Commands -->|"Load"| PatternFile
+    PatternFile -->|"Grid Data"| CurrentGrid
+    
+    CurrentGrid -->|"step()"| NeighborCalc
+    NeighborCalc --> RuleEngine
+    RuleEngine --> NextGrid
+    NextGrid -->|"Replace"| CurrentGrid
+    
+    CurrentGrid -->|"Copy"| GridData
+    GridData --> Rendering
+    Rendering --> Screen
+    Screen -->|"Visual Feedback"| User
+    
+    style User fill:#E74C3C,stroke:#C0392B,stroke-width:2px,color:#fff
+    style EventHandler fill:#4A90E2,stroke:#2E5C8A,stroke-width:2px,color:#fff
+    style Commands fill:#4A90E2,stroke:#2E5C8A,stroke-width:2px,color:#fff
+    
+    style CurrentGrid fill:#50C878,stroke:#2D7A4A,stroke-width:3px,color:#fff
+    style NeighborCalc fill:#50C878,stroke:#2D7A4A,stroke-width:2px,color:#fff
+    style RuleEngine fill:#50C878,stroke:#2D7A4A,stroke-width:2px,color:#fff
+    style NextGrid fill:#50C878,stroke:#2D7A4A,stroke-width:3px,color:#fff
+    
+    style GridData fill:#F39C12,stroke:#C87F0A,stroke-width:2px,color:#fff
+    style Rendering fill:#F39C12,stroke:#C87F0A,stroke-width:2px,color:#fff
+    style Screen fill:#F39C12,stroke:#C87F0A,stroke-width:2px,color:#fff
+    
+    style PatternFile fill:#9B59B6,stroke:#7D3C98,stroke-width:2px,color:#fff

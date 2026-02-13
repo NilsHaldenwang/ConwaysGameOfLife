@@ -1,0 +1,41 @@
+graph TB
+    subgraph "Conway's Game of Life - MVC Architecture"
+        subgraph "Controller Layer"
+            Controller["<b>GameOfLifeController</b><br/>game_of_life_controller.py<br/><br/>• Event Handling<br/>• State Management<br/>• Coordination"]
+        end
+        
+        subgraph "Model Layer"
+            Engine["<b>GameOfLifeEngine</b><br/>game_of_life_engine.py<br/><br/>• Game Logic<br/>• NumPy Calculations<br/>• Pattern Loading<br/>• Rule Application"]
+        end
+        
+        subgraph "View Layer"
+            View["<b>GameOfLifeView</b><br/>game_of_life_view.py<br/><br/>• PyGame Rendering<br/>• UI Components<br/>• Button Display<br/>• Grid Visualization"]
+        end
+        
+        User["👤 User<br/><br/>• Mouse Clicks<br/>• Keyboard Input<br/>• File Selection"]
+        
+        Files["📁 Pattern Files<br/><br/>• .txt Format<br/>• n×n Grid<br/>• 0/1 Characters"]
+    end
+    
+    User -->|"Input Events"| Controller
+    Controller -->|"Commands"| Engine
+    Controller -->|"Render Requests"| View
+    Controller -->|"Load Pattern"| Files
+    
+    Engine -->|"Grid State"| Controller
+    View -->|"Click Coordinates"| Controller
+    Files -->|"Pattern Data"| Engine
+    
+    View -->|"Visual Output"| User
+    
+    Engine -.->|"No Direct Access"| View
+    View -.->|"No Direct Access"| Engine
+    
+    style Controller fill:#4A90E2,stroke:#2E5C8A,stroke-width:3px,color:#fff
+    style Engine fill:#50C878,stroke:#2D7A4A,stroke-width:3px,color:#fff
+    style View fill:#F39C12,stroke:#C87F0A,stroke-width:3px,color:#fff
+    style User fill:#E74C3C,stroke:#C0392B,stroke-width:2px,color:#fff
+    style Files fill:#9B59B6,stroke:#7D3C98,stroke-width:2px,color:#fff
+    
+    classDef noAccess stroke-dasharray: 5 5,stroke:#E74C3C,stroke-width:2px
+    class Engine,View noAccess

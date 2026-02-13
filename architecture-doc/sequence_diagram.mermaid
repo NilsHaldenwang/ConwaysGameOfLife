@@ -1,0 +1,64 @@
+sequenceDiagram
+    participant U as 👤 User
+    participant C as Controller
+    participant V as View
+    participant E as Engine
+    
+    Note over U,E: User Loads a Pattern
+    U->>C: Click "Load" Button
+    C->>C: Open File Dialog
+    U->>C: Select pattern.txt
+    C->>E: load_pattern_from_file()
+    E->>E: Parse file, create grid
+    E-->>C: Pattern loaded
+    C->>V: update_grid_dimensions()
+    V-->>C: Window resized
+    C->>E: get_grid_copy()
+    E-->>C: Grid state
+    C->>V: render(grid)
+    V-->>U: Display updated grid
+    
+    Note over U,E: User Starts Simulation
+    U->>C: Click "Start" Button
+    C->>C: set is_running = True
+    
+    Note over U,E: Simulation Loop (while running)
+    loop Every Frame
+        C->>E: step()
+        E->>E: count_neighbors()
+        E->>E: apply rules
+        E->>E: update grid
+        E-->>C: Step complete
+        C->>C: generation += 1
+        C->>E: get_grid_copy()
+        E-->>C: Grid state
+        C->>V: render(grid, generation)
+        V-->>U: Display frame
+    end
+    
+    Note over U,E: User Pauses
+    U->>C: Click "Pause" Button
+    C->>C: set is_running = False
+    
+    Note over U,E: User Toggles Cell (when paused)
+    U->>C: Click on cell
+    C->>V: get_clicked_cell(pos)
+    V-->>C: (row, col)
+    C->>E: get_cell(row, col)
+    E-->>C: current_state
+    C->>E: set_cell(row, col, new_state)
+    C->>E: get_grid_copy()
+    E-->>C: Updated grid
+    C->>V: render(grid)
+    V-->>U: Cell toggled
+    
+    Note over U,E: User Clears Grid
+    U->>C: Click "Clear" Button
+    C->>E: clear()
+    E->>E: Set all cells to 0
+    C->>C: generation = 0
+    C->>C: is_running = False
+    C->>E: get_grid_copy()
+    E-->>C: Empty grid
+    C->>V: render(grid)
+    V-->>U: Empty grid displayed
