@@ -5,10 +5,23 @@ This module implements the core logic for Conway's Game of Life using NumPy
 for efficient numerical computations. It follows the Model-View-Controller (MVC)
 pattern, where this class represents the Model.
 
-Rules of Conway's Game of Life:
-1. Any live cell with 2 or 3 live neighbors survives
-2. Any dead cell with exactly 3 live neighbors becomes alive
-3. All other cells die or stay dead
+Plain-language summary for non-programmers:
+- The world is a rectangular grid made of cells. Each cell is either "alive"
+    or "dead" (represented by 1 and 0 respectively).
+- The grid is stored as a 2-dimensional NumPy array. The value at position
+    (row, column) tells you whether that cell is alive.
+- Each generation (step) every cell may change depending on how many live
+    neighbors it has. Neighbors are the 8 surrounding cells (up, down, left,
+    right and the 4 diagonals).
+
+Rules of Conway's Game of Life (simple):
+1. Any live cell with 2 or 3 live neighbors survives.
+2. Any dead cell with exactly 3 live neighbors becomes alive.
+3. All other cells die or stay dead.
+
+The implementation uses vectorized NumPy operations (array arithmetic and
+slice-based shifts) to compute neighbor counts efficiently without explicit
+Python loops. This keeps the code fast even for large grids.
 """
 
 import numpy as np
@@ -125,6 +138,10 @@ class GameOfLifeEngine:
         Returns:
             2D NumPy array with neighbor counts for each cell
         """
+        # Simple explanation: create an array the same shape as the grid and
+        # add up shifted copies of the grid so that each cell's value becomes
+        # the number of neighboring live cells. Indexing/slicing is used so
+        # that cells at the edge do not look beyond the array bounds.
         # Initialize neighbor count array
         neighbors = np.zeros_like(self.grid, dtype=np.int8)
         

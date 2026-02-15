@@ -5,6 +5,14 @@ This module implements the controller logic that coordinates between the game en
 (Model) and the visualization (View). It follows the Model-View-Controller (MVC)
 pattern, where this class represents the Controller.
 
+Plain-language summary for non-programmers:
+- The controller is the program's coordinator: it listens for mouse and keyboard
+    events, tells the model (engine) when to update the simulation, and asks the
+    view to redraw the screen.
+- The controller runs a simple loop (the "event loop") that repeats: process
+    events → update model → render → wait a short time. This loop runs until the
+    user closes the window.
+
 The controller handles user input, manages application state, and orchestrates
 the interaction between the model and view components.
 """
@@ -234,6 +242,8 @@ class GameOfLifeController:
         This method runs the game loop, processing events, updating the simulation,
         and rendering frames until the user quits.
         """
+        # `running` controls the main loop. It will become False when the user
+        # requests to quit (for example by closing the window).
         running = True
         
         print("Conway's Game of Life - Educational Demo")
@@ -249,17 +259,18 @@ class GameOfLifeController:
         print("  - ESC: Pause simulation")
         print("=" * 50)
         
+        # Main event loop: repeat until running is False
         while running:
-            # Process user input
+            # Process user input (keyboard / mouse / window events)
             running = self.handle_events()
-            
-            # Update simulation state
+
+            # Advance simulation if it's running
             self.update()
-            
-            # Render the current frame
+
+            # Render current state to the window
             self.render()
-            
-            # Control framerate
+
+            # Wait to enforce the target frames-per-second / simulation speed
             self.view.tick(self.target_fps)
         
         # Cleanup when application closes

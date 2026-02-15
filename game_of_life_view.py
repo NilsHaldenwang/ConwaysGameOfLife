@@ -4,6 +4,15 @@ Game of Life Visualization Module
 This module implements the visualization layer using PyGame. It follows the
 Model-View-Controller (MVC) pattern, where this class represents the View.
 
+Plain-language summary for non-programmers:
+- The view draws the grid on the screen: each cell becomes a small square of
+    pixels. Alive cells are drawn with a bright color, dead cells with a dark color.
+- Coordinates: positions on the screen are in pixels. To map a mouse click to a
+    grid cell we subtract a horizontal offset (if the grid is centered) and divide
+    by the cell size. That gives the row and column in the logical grid.
+- PyGame is the library used to create the window, draw shapes, and handle
+    keyboard and mouse events.
+
 The visualization is responsible only for rendering the game state and UI elements,
 not for game logic or state management.
 """
@@ -311,6 +320,9 @@ class GameOfLifeView:
             return None
         
         # Account for horizontal grid offset (centering)
+        # Explanation: if the window is wider than the grid, the grid is
+        # centered and `grid_offset_x` holds how many pixels are left of the
+        # grid. We subtract this offset before converting pixels to cell index.
         x_relative = x - self.grid_offset_x
         
         # Check if click is within grid area (horizontally)
