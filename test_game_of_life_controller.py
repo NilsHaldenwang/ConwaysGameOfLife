@@ -165,6 +165,17 @@ class TestGameOfLifeController(unittest.TestCase):
         
         self.assertEqual(self.controller.generation, 0)
         self.assertEqual(self.controller.engine.get_cell(5, 5), 0)
+
+    def test_handle_mouse_click_on_speed_button(self):
+        """Test handling a click on the speed button cycles FPS."""
+        # Record original FPS
+        original_fps = self.controller.target_fps
+
+        pos = self.controller.view.speed_button.center
+        self.controller._handle_mouse_click(pos)
+
+        # FPS should have changed to the next option
+        self.assertNotEqual(self.controller.target_fps, original_fps)
     
     def test_handle_mouse_click_on_cell_when_paused(self):
         """Test that clicking a cell toggles it when paused."""

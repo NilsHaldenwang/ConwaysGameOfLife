@@ -63,7 +63,14 @@ class GameOfLifeController:
         self.loaded_filename = None
         
         # Simulation speed (steps per second)
+        # Preset speed options that the Speed button will cycle through.
+        self.speed_options = [5, 10, 20, 30]
+        # Default to 10 FPS if available
         self.target_fps = 10
+        try:
+            self._speed_index = self.speed_options.index(self.target_fps)
+        except ValueError:
+            self._speed_index = 0
     
     def handle_events(self) -> bool:
         """
@@ -108,6 +115,9 @@ class GameOfLifeController:
             self.pause_simulation()
         elif clicked_button == "load":
             self.load_pattern()
+        elif clicked_button == "speed":
+            # Cycle to the next speed option
+            self._cycle_simulation_speed()
         elif clicked_button == "clear":
             self.clear_grid()
         else:
@@ -233,7 +243,9 @@ class GameOfLifeController:
         This method should be called once per frame.
         """
         grid = self.engine.get_grid_copy()
-        self.view.render(grid, self.is_running, self.generation, self.loaded_filename)
+        # Pass current target FPS to the view so it can display it and label the
+        # Speed button accordingly.
+        self.view.render(grid, self.is_running, self.generation, self.target_fps, self.loaded_filename)
     
     def run(self) -> None:
         """
@@ -286,3 +298,16 @@ class GameOfLifeController:
         """
         if fps > 0:
             self.target_fps = fps
+
+    def _cycle_simulation_speed(self) -> None:
+        """
+        Cycle to the next preset simulation speed and apply it.
+
+        This method is invoked when the Speed button is clicked. It advances
+        an internal index into `self.speed_options`, updates `self.target_fps`,
+        and prints the new speed for user feedback.
+        """
+        self._speed_index = (self._speed_index + 1) % len(self.speed_options)
+        new_fps = self.speed_options[self._speed_index]
+        self.set_simulation_speed(new_fps)
+        print(f"Simulation speed set to {new_fps} FPS")

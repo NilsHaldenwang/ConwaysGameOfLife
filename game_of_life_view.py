@@ -75,8 +75,9 @@ class GameOfLifeView:
         self.button_margin = 20  # Left margin for first button
         
         # Calculate minimum width needed for all buttons
-        # 4 buttons × 100px + 3 spaces × 10px + 2 margins × 20px = 470px
-        num_buttons = 4
+        # 5 buttons × 100px + 4 spaces × 10px + 2 margins × 20px = 580px
+        # (we added a Speed button to control framerate)
+        num_buttons = 5
         self.min_width = (num_buttons * self.button_width + 
                          (num_buttons - 1) * self.button_spacing + 
                          2 * self.button_margin)
@@ -128,6 +129,10 @@ class GameOfLifeView:
         x_pos += self.button_width + self.button_spacing
         
         self.clear_button = pygame.Rect(x_pos, button_y, self.button_width, self.button_height)
+        x_pos += self.button_width + self.button_spacing
+
+        # Speed button (cycles through preset framerates)
+        self.speed_button = pygame.Rect(x_pos, button_y, self.button_width, self.button_height)
     
     def update_grid_dimensions(self, rows: int, cols: int) -> None:
         """
@@ -211,7 +216,7 @@ class GameOfLifeView:
         text_rect = text_surface.get_rect(center=rect.center)
         self.screen.blit(text_surface, text_rect)
     
-    def draw_ui(self, is_running: bool, generation: int, filename: Optional[str] = None) -> None:
+    def draw_ui(self, is_running: bool, generation: int, fps: int, filename: Optional[str] = None) -> None:
         """
         Draw the UI control panel with buttons and status information.
         
@@ -230,6 +235,8 @@ class GameOfLifeView:
         self.draw_button(self.pause_button, "Pause")
         self.draw_button(self.load_button, "Load")
         self.draw_button(self.clear_button, "Clear")
+        # Speed button shows current FPS
+        self.draw_button(self.speed_button, f"Speed: {fps}")
         
         # Draw generation counter
         gen_text = f"Generation: {generation}"
@@ -246,9 +253,14 @@ class GameOfLifeView:
             file_text = f"Pattern: {filename}"
             file_surface = self.small_font.render(file_text, True, self.COLORS['button_text'])
             self.screen.blit(file_surface, (20, ui_y + 60))
+
+        # Also show FPS near the generation counter for quick reference
+        fps_text = f"FPS: {fps}"
+        fps_surface = self.small_font.render(fps_text, True, self.COLORS['button_text'])
+        self.screen.blit(fps_surface, (self.screen_width - 150, ui_y + 60))
     
     def render(self, grid: np.ndarray, is_running: bool, generation: int, 
-               filename: Optional[str] = None) -> None:
+               fps: int, filename: Optional[str] = None) -> None:
         """
         Render the complete frame including grid and UI.
         
@@ -261,7 +273,7 @@ class GameOfLifeView:
             filename: Loaded pattern filename (optional)
         """
         self.draw_grid(grid)
-        self.draw_ui(is_running, generation, filename)
+        self.draw_ui(is_running, generation, fps, filename)
         pygame.display.flip()
     
     def update_hover_state(self, mouse_pos: Tuple[int, int]) -> None:
@@ -297,6 +309,8 @@ class GameOfLifeView:
             return "load"
         elif self.clear_button.collidepoint(mouse_pos):
             return "clear"
+        elif hasattr(self, 'speed_button') and self.speed_button.collidepoint(mouse_pos):
+            return "speed"
         return None
     
     def get_clicked_cell(self, mouse_pos: Tuple[int, int]) -> Optional[Tuple[int, int]]:

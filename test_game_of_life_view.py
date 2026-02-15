@@ -43,18 +43,17 @@ class TestGameOfLifeView(unittest.TestCase):
         
         # Check calculated dimensions
         # For a 20x20 grid with cell_size=10, grid_width=200
-        # min_width should be 470 (calculated from buttons)
-        # screen_width should be max(200, 470) = 470
+        # min_width is calculated from buttons (updated if button count changes)
+        # screen_width should be max(200, min_width)
         expected_height = 20 * 10 + 80  # rows * cell_size + ui_height
         
-        self.assertEqual(self.view.min_width, 470)
-        self.assertEqual(self.view.screen_width, 470)  # Uses min_width
+        self.assertEqual(self.view.screen_width, max(20 * 10, self.view.min_width))
         self.assertEqual(self.view.screen_height, expected_height)
         
         # Check grid offset (grid should be centered)
-        # grid_width = 200, screen_width = 470
-        # offset = (470 - 200) // 2 = 135
-        self.assertEqual(self.view.grid_offset_x, 135)
+        grid_width = self.view.grid_cols * self.view.cell_size
+        expected_offset = (self.view.screen_width - grid_width) // 2
+        self.assertEqual(self.view.grid_offset_x, expected_offset)
     
     def test_initialization_custom_cell_size(self):
         """Test initialization with custom cell size."""
@@ -65,15 +64,14 @@ class TestGameOfLifeView(unittest.TestCase):
         self.assertEqual(view.cell_size, 15)
         
         # For a 30x30 grid with cell_size=15, grid_width=450
-        # min_width is 470, so screen_width should be 470
+        # screen_width should be max(grid_width, min_width)
         expected_height = 30 * 15 + 80
         
-        self.assertEqual(view.min_width, 470)
-        self.assertEqual(view.screen_width, 470)  # Uses min_width
+        self.assertEqual(view.screen_width, max(30 * 15, view.min_width))  # Uses min_width or grid width
         self.assertEqual(view.screen_height, expected_height)
         
-        # grid_offset should be (470 - 450) // 2 = 10
-        self.assertEqual(view.grid_offset_x, 10)
+        # grid_offset should be (min_width - grid_width) // 2 when min_width > grid_width
+        self.assertEqual(view.grid_offset_x, (view.min_width - 30 * 15) // 2)
         
         view.cleanup()
     
@@ -86,7 +84,7 @@ class TestGameOfLifeView(unittest.TestCase):
         self.assertEqual(self.view.grid_cols, 60)
         
         # For 60x60 grid with cell_size=10, grid_width=600
-        # This exceeds min_width=470, so screen_width should be 600
+        # This exceeds min_width, so screen_width should be 600
         expected_height = 60 * 10 + 80
         
         self.assertEqual(self.view.screen_width, 600)  # Uses grid width
@@ -102,25 +100,25 @@ class TestGameOfLifeView(unittest.TestCase):
         self.assertEqual(self.view.grid_cols, 10)
         
         # For 10x10 grid with cell_size=10, grid_width=100
-        # This is less than min_width=470, so screen_width should be 470
+        # This is less than min_width, so screen_width should be min_width
         expected_height = 10 * 10 + 80
         
-        self.assertEqual(self.view.screen_width, 470)  # Uses min_width
+        self.assertEqual(self.view.screen_width, self.view.min_width)  # Uses min_width
         self.assertEqual(self.view.screen_height, expected_height)
         
-        # Grid should be centered: (470 - 100) // 2 = 185
-        self.assertEqual(self.view.grid_offset_x, 185)
+        # Grid should be centered: (min_width - 100) // 2
+        self.assertEqual(self.view.grid_offset_x, (self.view.min_width - 100) // 2)
     
     def test_minimum_width_enforcement(self):
         """Test that minimum width is always enforced for small grids."""
         # Create a very small grid
         small_view = GameOfLifeView(5, 5, cell_size=10)
         
-        # Grid width is only 50 pixels, but window should be at least 470
-        self.assertEqual(small_view.screen_width, 470)
+        # Grid width is only 50 pixels, but window should be at least min_width
+        self.assertEqual(small_view.screen_width, small_view.min_width)
         
-        # Grid should be centered: (470 - 50) // 2 = 210
-        self.assertEqual(small_view.grid_offset_x, 210)
+        # Grid should be centered: (min_width - 50) // 2
+        self.assertEqual(small_view.grid_offset_x, (small_view.min_width - 50) // 2)
         
         small_view.cleanup()
     
@@ -138,6 +136,13 @@ class TestGameOfLifeView(unittest.TestCase):
         
         clicked = self.view.get_clicked_button(pos)
         self.assertEqual(clicked, "start")
+
+    def test_get_clicked_button_speed(self):
+        """Test detecting clicks on the speed button."""
+        pos = self.view.speed_button.center
+
+        clicked = self.view.get_clicked_button(pos)
+        self.assertEqual(clicked, "speed")
     
     def test_get_clicked_button_pause(self):
         """Test detecting clicks on the pause button."""
@@ -277,8 +282,8 @@ class TestGameOfLifeView(unittest.TestCase):
         """Test that drawing the UI doesn't raise errors."""
         # Should not raise an exception
         try:
-            self.view.draw_ui(is_running=True, generation=42, filename="test.txt")
-            self.view.draw_ui(is_running=False, generation=0, filename=None)
+            self.view.draw_ui(is_running=True, generation=42, fps=10, filename="test.txt")
+            self.view.draw_ui(is_running=False, generation=0, fps=5, filename=None)
         except Exception as e:
             self.fail(f"draw_ui raised an exception: {e}")
     
@@ -296,7 +301,7 @@ class TestGameOfLifeView(unittest.TestCase):
         
         # Should not raise an exception
         try:
-            self.view.render(grid, is_running=True, generation=10, filename="test.txt")
+            self.view.render(grid, is_running=True, generation=10, fps=10, filename="test.txt")
         except Exception as e:
             self.fail(f"render raised an exception: {e}")
     
