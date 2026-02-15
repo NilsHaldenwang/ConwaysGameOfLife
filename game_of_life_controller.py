@@ -119,8 +119,12 @@ class GameOfLifeController:
             # Cycle to the next speed option
             self._cycle_simulation_speed()
         elif clicked_button == "random":
-            # Randomize the grid with default density and reset generation
-            self._randomize_grid()
+            # Use the view to ask the user for a density (PyGame-based dialog).
+            # The view will return a float between 0.0 and 1.0 or None if cancelled.
+            density = self.view.ask_density(initial=0.2)
+            if density is None:
+                return
+            self._randomize_grid(density)
         elif clicked_button == "clear":
             self.clear_grid()
         else:

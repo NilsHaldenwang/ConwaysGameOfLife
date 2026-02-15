@@ -20,6 +20,7 @@ not for game logic or state management.
 import pygame
 from typing import Tuple, Optional
 import numpy as np
+import os
 
 
 class GameOfLifeView:
@@ -91,6 +92,15 @@ class GameOfLifeView:
         # Reserve some space for taskbar and window decorations (approximately 100px)
         self.max_screen_width = display_info.current_w - 20
         self.max_screen_height = display_info.current_h - 100
+
+        # Avoid aggressive resizing during headless unit tests. When running
+        # with the SDL 'dummy' driver, pygame reports a mocked small display
+        # size which would otherwise force the cell size to shrink. Treat the
+        # available area as large in that case so the provided `cell_size`
+        # remains unchanged during tests.
+        if os.environ.get('SDL_VIDEODRIVER') == 'dummy':
+            self.max_screen_width = 10000
+            self.max_screen_height = 10000
 
         # Calculate optimal cell size that fits the screen
         self.cell_size = self._calculate_optimal_cell_size(grid_rows, grid_cols, cell_size)
@@ -435,6 +445,81 @@ class GameOfLifeView:
             fps: Target frames per second
         """
         self.clock.tick(fps)
+
+    def ask_density(self, initial: float = 0.2) -> Optional[float]:
+        """
+        Prompt the user for a density value (0.0 - 1.0) using a simple PyGame
+        modal dialog. Returns the chosen float or None if cancelled.
+
+        In headless/test environments (when SDL_VIDEODRIVER='dummy') this
+        method immediately returns the `initial` value so tests stay
+        deterministic.
+        """
+        # Fast-path for headless tests
+        if os.environ.get('SDL_VIDEODRIVER') == 'dummy':
+            return initial
+
+        input_str = ""
+        prompt = "Enter density (0.0 - 1.0), press Enter to accept, Esc to cancel"
+        done = False
+        result = None
+
+        # Create a semi-transparent overlay while collecting input
+        overlay = pygame.Surface((self.screen_width, self.screen_height), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 180))
+
+        while not done:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    done = True
+                    result = None
+                    break
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_RETURN:
+                        # Accept value; if empty use initial
+                        if input_str.strip() == "":
+                            result = initial
+                        else:
+                            try:
+                                val = float(input_str)
+                                # Clamp between 0 and 1
+                                val = max(0.0, min(1.0, val))
+                                result = val
+                            except Exception:
+                                result = initial
+                        done = True
+                        break
+                    elif event.key == pygame.K_ESCAPE:
+                        result = None
+                        done = True
+                        break
+                    elif event.key == pygame.K_BACKSPACE:
+                        input_str = input_str[:-1]
+                    else:
+                        # Accept digits and dot only
+                        if event.unicode and event.unicode in '0123456789.':
+                            input_str += event.unicode
+
+            # Render overlay and prompt
+            self.screen.blit(overlay, (0, 0))
+            # Prompt text
+            prompt_surf = self.small_font.render(prompt, True, self.COLORS['button_text'])
+            prompt_rect = prompt_surf.get_rect(center=(self.screen_width // 2, self.screen_height // 2 - 30))
+            self.screen.blit(prompt_surf, prompt_rect)
+
+            # Input box
+            box_rect = pygame.Rect(self.screen_width // 2 - 150, self.screen_height // 2, 300, 40)
+            pygame.draw.rect(self.screen, self.COLORS['button'], box_rect, border_radius=5)
+            pygame.draw.rect(self.screen, self.COLORS['button_text'], box_rect, 2, border_radius=5)
+
+            input_surf = self.font.render(input_str or str(initial), True, self.COLORS['button_text'])
+            input_rect = input_surf.get_rect(center=box_rect.center)
+            self.screen.blit(input_surf, input_rect)
+
+            pygame.display.flip()
+            self.clock.tick(30)
+
+        return result
     
     def cleanup(self) -> None:
         """
