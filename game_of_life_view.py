@@ -73,14 +73,19 @@ class GameOfLifeView:
         self.button_height = 40
         self.button_spacing = 10
         self.button_margin = 20  # Left margin for first button
+        # Reserve extra horizontal space on the right of the buttons for
+        # status / generation labels so they never overlap the buttons.
+        # This value is in pixels and should be large enough to hold two
+        # lines of small text comfortably.
+        self.label_area_width = 180
         
-        # Calculate minimum width needed for all buttons
-        # 5 buttons × 100px + 4 spaces × 10px + 2 margins × 20px = 580px
-        # (we added a Speed button to control framerate)
-        num_buttons = 5
-        self.min_width = (num_buttons * self.button_width + 
-                         (num_buttons - 1) * self.button_spacing + 
-                         2 * self.button_margin)
+        # Calculate minimum width needed for all buttons plus reserved label area
+        # Buttons + spacing + margins + reserved label area
+        num_buttons = 6
+        base_buttons_width = (num_buttons * self.button_width + 
+                      (num_buttons - 1) * self.button_spacing + 
+                      2 * self.button_margin)
+        self.min_width = base_buttons_width + self.label_area_width
         
         # Calculate actual grid width
         grid_width = grid_cols * cell_size
@@ -133,6 +138,10 @@ class GameOfLifeView:
 
         # Speed button (cycles through preset framerates)
         self.speed_button = pygame.Rect(x_pos, button_y, self.button_width, self.button_height)
+        x_pos += self.button_width + self.button_spacing
+
+        # Randomize button: creates a random starting configuration
+        self.random_button = pygame.Rect(x_pos, button_y, self.button_width, self.button_height)
     
     def update_grid_dimensions(self, rows: int, cols: int) -> None:
         """
@@ -237,27 +246,38 @@ class GameOfLifeView:
         self.draw_button(self.clear_button, "Clear")
         # Speed button shows current FPS
         self.draw_button(self.speed_button, f"Speed: {fps}")
+        # Randomize starting configuration
+        self.draw_button(self.random_button, "Random")
         
-        # Draw generation counter
+        # Draw generation counter and status. Position them on the right side
+        # of the UI, but if the button area reaches that region, shift the text
+        # to the right of the buttons to avoid overlapping. We clamp the final
+        # x coordinate to stay within the window.
         gen_text = f"Generation: {generation}"
         gen_surface = self.small_font.render(gen_text, True, self.COLORS['button_text'])
-        self.screen.blit(gen_surface, (self.screen_width - 150, ui_y + 10))
-        
-        # Draw running status
+
+        # Determine a safe x position that does not overlap the rightmost button
+        buttons_right = getattr(self, 'random_button', getattr(self, 'speed_button', None)).right
+        preferred_x = self.screen_width - 150
+        safe_x = max(preferred_x, buttons_right + 10)
+        # Clamp so text remains visible
+        safe_x = min(safe_x, self.screen_width - 150)
+
+        self.screen.blit(gen_surface, (safe_x, ui_y + 10))
+
+        # Draw running status below generation
         status_text = "Running" if is_running else "Paused"
         status_surface = self.small_font.render(status_text, True, self.COLORS['button_text'])
-        self.screen.blit(status_surface, (self.screen_width - 150, ui_y + 35))
-        
-        # Draw loaded filename if available
+        self.screen.blit(status_surface, (safe_x, ui_y + 35))
+
+        # Draw loaded filename if available (left side)
         if filename:
             file_text = f"Pattern: {filename}"
             file_surface = self.small_font.render(file_text, True, self.COLORS['button_text'])
             self.screen.blit(file_surface, (20, ui_y + 60))
 
-        # Also show FPS near the generation counter for quick reference
-        fps_text = f"FPS: {fps}"
-        fps_surface = self.small_font.render(fps_text, True, self.COLORS['button_text'])
-        self.screen.blit(fps_surface, (self.screen_width - 150, ui_y + 60))
+        # FPS is shown on the Speed button; no separate FPS label here to avoid
+        # duplicate information and possible overlap.
     
     def render(self, grid: np.ndarray, is_running: bool, generation: int, 
                fps: int, filename: Optional[str] = None) -> None:
@@ -311,6 +331,8 @@ class GameOfLifeView:
             return "clear"
         elif hasattr(self, 'speed_button') and self.speed_button.collidepoint(mouse_pos):
             return "speed"
+        elif hasattr(self, 'random_button') and self.random_button.collidepoint(mouse_pos):
+            return "random"
         return None
     
     def get_clicked_cell(self, mouse_pos: Tuple[int, int]) -> Optional[Tuple[int, int]]:

@@ -176,6 +176,21 @@ class TestGameOfLifeController(unittest.TestCase):
 
         # FPS should have changed to the next option
         self.assertNotEqual(self.controller.target_fps, original_fps)
+
+    def test_handle_mouse_click_on_random_button(self):
+        """Test handling a click on the random button triggers engine.randomize."""
+        called = {}
+
+        def fake_randomize(prob=0.2):
+            called['yes'] = True
+
+        # Replace engine.randomize with our fake to make test deterministic
+        self.controller.engine.randomize = fake_randomize
+
+        pos = self.controller.view.random_button.center
+        self.controller._handle_mouse_click(pos)
+
+        self.assertIn('yes', called)
     
     def test_handle_mouse_click_on_cell_when_paused(self):
         """Test that clicking a cell toggles it when paused."""

@@ -214,3 +214,19 @@ class GameOfLifeEngine:
             Tuple of (rows, columns)
         """
         return (self.rows, self.cols)
+
+    def randomize(self, probability: float = 0.2) -> None:
+        """
+        Fill the grid with a random starting configuration.
+
+        Each cell becomes alive with the given probability (a float between 0 and 1).
+
+        Args:
+            probability: Probability for each cell to be alive (default 0.2)
+        """
+        if probability <= 0:
+            self.grid.fill(0)
+            return
+
+        # Use NumPy's random module for vectorized random generation
+        self.grid = (np.random.random((self.rows, self.cols)) < probability).astype(np.int8)

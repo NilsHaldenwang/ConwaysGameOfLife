@@ -118,6 +118,9 @@ class GameOfLifeController:
         elif clicked_button == "speed":
             # Cycle to the next speed option
             self._cycle_simulation_speed()
+        elif clicked_button == "random":
+            # Randomize the grid with default density and reset generation
+            self._randomize_grid()
         elif clicked_button == "clear":
             self.clear_grid()
         else:
@@ -311,3 +314,22 @@ class GameOfLifeController:
         new_fps = self.speed_options[self._speed_index]
         self.set_simulation_speed(new_fps)
         print(f"Simulation speed set to {new_fps} FPS")
+
+    def _randomize_grid(self, probability: float = 0.2) -> None:
+        """
+        Fill the engine grid with a random initial configuration and reset state.
+
+        Args:
+            probability: Probability each cell is alive (default 0.2)
+        """
+        # Pause simulation while changing grid
+        self.pause_simulation()
+
+        # Ask engine to randomize the internal grid
+        self.engine.randomize(probability)
+
+        # Reset generation counter and update view dimensions (in case)
+        self.generation = 0
+        rows, cols = self.engine.get_dimensions()
+        self.view.update_grid_dimensions(rows, cols)
+        print(f"Randomized grid with probability={probability}")
