@@ -55,19 +55,18 @@ class GameOfLifeView:
     def __init__(self, grid_rows: int, grid_cols: int, cell_size: int = 15):
         """
         Initialize the PyGame visualization.
-        
+
         Args:
             grid_rows: Number of rows in the game grid
             grid_cols: Number of columns in the game grid
-            cell_size: Size of each cell in pixels (default: 15)
+            cell_size: Size of each cell in pixels (default: 15, will be adjusted to fit screen)
         """
         pygame.init()
-        
+
         self.grid_rows = grid_rows
         self.grid_cols = grid_cols
-        self.cell_size = cell_size
         self.ui_height = 80  # Height for control buttons
-        
+
         # Button dimensions
         self.button_width = 100
         self.button_height = 40
@@ -78,61 +77,112 @@ class GameOfLifeView:
         # This value is in pixels and should be large enough to hold two
         # lines of small text comfortably.
         self.label_area_width = 180
-        
+
         # Calculate minimum width needed for all buttons plus reserved label area
         # Buttons + spacing + margins + reserved label area
         num_buttons = 6
-        base_buttons_width = (num_buttons * self.button_width + 
-                      (num_buttons - 1) * self.button_spacing + 
+        base_buttons_width = (num_buttons * self.button_width +
+                      (num_buttons - 1) * self.button_spacing +
                       2 * self.button_margin)
         self.min_width = base_buttons_width + self.label_area_width
-        
+
+        # Get available screen size (accounting for taskbar)
+        display_info = pygame.display.Info()
+        # Reserve some space for taskbar and window decorations (approximately 100px)
+        self.max_screen_width = display_info.current_w - 20
+        self.max_screen_height = display_info.current_h - 100
+
+        # Calculate optimal cell size that fits the screen
+        self.cell_size = self._calculate_optimal_cell_size(grid_rows, grid_cols, cell_size)
+
         # Calculate actual grid width
-        grid_width = grid_cols * cell_size
-        
+        grid_width = grid_cols * self.cell_size
+
         # Use the larger of grid width or minimum UI width
         self.screen_width = max(grid_width, self.min_width)
-        self.screen_height = grid_rows * cell_size + self.ui_height
-        
+        self.screen_height = grid_rows * self.cell_size + self.ui_height
+
         # Calculate grid offset to center it if screen is wider than grid
         self.grid_offset_x = (self.screen_width - grid_width) // 2
-        
+
         # Create the display window
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         pygame.display.set_caption("Conway's Game of Life - Educational Demo")
-        
+
         # Clock for controlling framerate
         self.clock = pygame.time.Clock()
-        
+
         # Initialize font for UI text
         self.font = pygame.font.Font(None, 28)
         self.small_font = pygame.font.Font(None, 20)
-        
+
         # Create buttons with proper spacing
-        button_y = grid_rows * cell_size + 15
+        button_y = grid_rows * self.cell_size + 15
         self._create_buttons(button_y)
-        
+
         # Track which button is currently hovered
         self.hovered_button = None
     
+    def _calculate_optimal_cell_size(self, grid_rows: int, grid_cols: int,
+                                     preferred_cell_size: int) -> int:
+        """
+        Calculate optimal cell size to fit the screen.
+
+        Adjusts the cell size so that the entire window (grid + UI) fits
+        within the available screen space, considering both width and height.
+
+        Args:
+            grid_rows: Number of rows in the grid
+            grid_cols: Number of columns in the grid
+            preferred_cell_size: Preferred cell size (will be used if it fits)
+
+        Returns:
+            Optimal cell size in pixels (minimum 3 to remain visible)
+        """
+        # Start with preferred cell size
+        cell_size = preferred_cell_size
+
+        # Calculate what window size would result from this cell size
+        grid_width = grid_cols * cell_size
+        grid_height = grid_rows * cell_size
+
+        required_width = max(grid_width, self.min_width)
+        required_height = grid_height + self.ui_height
+
+        # If it doesn't fit, reduce cell size
+        if required_width > self.max_screen_width or required_height > self.max_screen_height:
+            # Calculate maximum cell size based on width constraint
+            max_cell_size_width = self.max_screen_width // grid_cols
+
+            # Calculate maximum cell size based on height constraint
+            max_cell_size_height = (self.max_screen_height - self.ui_height) // grid_rows
+
+            # Use the smaller of the two to ensure it fits in both dimensions
+            cell_size = min(max_cell_size_width, max_cell_size_height)
+
+            # Ensure minimum cell size for visibility
+            cell_size = max(cell_size, 3)
+
+        return cell_size
+
     def _create_buttons(self, button_y: int) -> None:
         """
         Create button rectangles with proper layout.
-        
+
         Args:
             button_y: Y-coordinate for the buttons
         """
         x_pos = self.button_margin
-        
+
         self.start_button = pygame.Rect(x_pos, button_y, self.button_width, self.button_height)
         x_pos += self.button_width + self.button_spacing
-        
+
         self.pause_button = pygame.Rect(x_pos, button_y, self.button_width, self.button_height)
         x_pos += self.button_width + self.button_spacing
-        
+
         self.load_button = pygame.Rect(x_pos, button_y, self.button_width, self.button_height)
         x_pos += self.button_width + self.button_spacing
-        
+
         self.clear_button = pygame.Rect(x_pos, button_y, self.button_width, self.button_height)
         x_pos += self.button_width + self.button_spacing
 
@@ -146,29 +196,34 @@ class GameOfLifeView:
     def update_grid_dimensions(self, rows: int, cols: int) -> None:
         """
         Update the grid dimensions and resize the window accordingly.
-        
+
         This is called when a new pattern is loaded with different dimensions.
-        
+        Recalculates the optimal cell size to fit the new grid on the screen.
+
         Args:
             rows: New number of rows
             cols: New number of columns
         """
         self.grid_rows = rows
         self.grid_cols = cols
-        
+
+        # Recalculate optimal cell size for new dimensions
+        # Use current cell size as preferred starting point
+        self.cell_size = self._calculate_optimal_cell_size(rows, cols, self.cell_size)
+
         # Calculate actual grid width
         grid_width = cols * self.cell_size
-        
+
         # Use the larger of grid width or minimum UI width
         self.screen_width = max(grid_width, self.min_width)
         self.screen_height = rows * self.cell_size + self.ui_height
-        
+
         # Calculate grid offset to center it if screen is wider than grid
         self.grid_offset_x = (self.screen_width - grid_width) // 2
-        
+
         # Resize the window
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
-        
+
         # Recreate buttons with proper positions
         button_y = rows * self.cell_size + 15
         self._create_buttons(button_y)
