@@ -44,13 +44,13 @@ class GameOfLifeView:
     # Color scheme constants
     COLORS = {
         'background': (20, 20, 20),      # Dark background
-        'grid_line': (50, 50, 50),       # Grid lines
-        'dead_cell': (30, 30, 30),       # Dead cells
-        'alive_cell': (0, 255, 100),     # Alive cells (bright green)
+        'grid_line':  (10, 14, 23),       # Grid lines
+        'dead_cell': (26, 34, 54),       # Dead cells (#1A2236)
+        'alive_cell': (34, 211, 238),    # Alive cells (#22D3EE)
         'button': (60, 60, 60),          # Button background
         'button_hover': (80, 80, 80),    # Button hover state
         'button_text': (255, 255, 255),  # Button text
-        'ui_background': (40, 40, 40),   # UI panel background
+        'ui_background': (10, 14, 23),   # UI panel background
     }
     
     def __init__(self, grid_rows: int, grid_cols: int, cell_size: int = 15):
