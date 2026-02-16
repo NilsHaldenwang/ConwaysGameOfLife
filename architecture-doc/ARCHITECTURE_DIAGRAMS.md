@@ -7,37 +7,22 @@ Diese Dokumentation erklärt die verschiedenen Architektur-Diagramme für das Co
 ### 1. **architecture_diagram.mermaid** - MVC Übersicht
 Zeigt die grundlegende MVC-Architektur und die Hauptkomponenten.
 
-**Verwendung im Vortrag:**
-- Zu Beginn zeigen: "So ist unser System strukturiert"
-- Separation of Concerns demonstrieren
-- Erklären warum Model und View nicht direkt kommunizieren
-
-**Wichtige Punkte:**
+**Komponenten:**
 - 🔵 **Controller** (Blau): Koordiniert alles
 - 🟢 **Model/Engine** (Grün): Spiellogik mit NumPy
 - 🟠 **View** (Orange): PyGame Visualisierung
-- ❌ Gestrichelte Linien: Keine direkte Kommunikation
+- ❌ Gestrichelte Linien: Keine direkte Kommunikation (Separation of Concerns)
 
 ### 2. **component_diagram.mermaid** - Detaillierte Komponenten
 Zeigt die internen Komponenten jeder Schicht.
 
-**Verwendung im Vortrag:**
-- Bei Code-Walkthrough zeigen
-- Erklären wie jede Komponente arbeitet
-- Zeigen dass jede Komponente eine klare Verantwortung hat
-
-**Wichtige Komponenten:**
+**Komponenten:**
 - **Engine**: Grid State, Rules, Neighbor Counting, Pattern Loader
 - **View**: Grid Renderer, UI Renderer, Event Detection, Display
 - **Controller**: Event Handler, State Manager, Coordinator
 
 ### 3. **sequence_diagram.mermaid** - Interaktionsablauf
-Zeigt zeitliche Abfolge von Benutzeraktionen.
-
-**Verwendung im Vortrag:**
-- Beim Demonstrieren der Live-Demo
-- Zeigen: "Das passiert wenn Sie Load klicken"
-- Verdeutlicht den Datenfluss über Zeit
+Zeigt die zeitliche Abfolge von Benutzeraktionen.
 
 **Dargestellte Szenarien:**
 1. Pattern laden
@@ -50,16 +35,11 @@ Zeigt zeitliche Abfolge von Benutzeraktionen.
 ### 4. **dataflow_diagram.mermaid** - Datenfluss
 Zeigt wie Daten durch das System fließen.
 
-**Verwendung im Vortrag:**
-- Performance-Diskussion: "Wo sind die Bottlenecks?"
-- NumPy-Optimierung: "Warum ist das schnell?"
-- Zeigen wie Grid-State transformiert wird
-
 **Datenfluss-Schritte:**
 1. User Input → Events
 2. Events → Commands
 3. Commands → Grid Manipulation
-4. Grid → Neighbor Calculation (NumPy!)
+4. Grid → Neighbor Calculation (NumPy)
 5. Neighbors → Rule Application
 6. New Grid → Rendering
 7. Rendering → Visual Output
@@ -92,33 +72,7 @@ Oder kopieren Sie den Inhalt in:
 - In PowerPoint/Google Slides einfügen
 - Oder: Mermaid Plugin für Reveal.js nutzen
 
-## 💡 Vortragsstruktur mit Diagrammen
-
-### Phase 1: Einführung (2 Min)
-**Diagramm: architecture_diagram.mermaid**
-- "Wir verwenden das MVC Pattern"
-- Zeigen der drei Hauptkomponenten
-- Erklären Separation of Concerns
-
-### Phase 2: Architektur Deep-Dive (8 Min)
-**Diagramm: component_diagram.mermaid**
-- Detaillierte Komponenten zeigen
-- Jede Schicht durchgehen
-- Verantwortlichkeiten erklären
-
-### Phase 3: Live-Demo Erklärung (5 Min)
-**Diagramm: sequence_diagram.mermaid**
-- Vor der Demo zeigen
-- "Das passiert wenn Sie auf Start klicken"
-- Ablauf transparent machen
-
-### Phase 4: Performance-Diskussion (5 Min)
-**Diagramm: dataflow_diagram.mermaid**
-- NumPy-Optimierung erklären
-- "Daten fließen durch vektorisierte Operationen"
-- Bottleneck-Analyse
-
-## 🔍 Design-Entscheidungen (für Diskussion)
+## � Design-Entscheidungen
 
 ### Warum MVC?
 - ✅ **Testbarkeit**: Jede Komponente isoliert testbar
@@ -149,31 +103,3 @@ Oder kopieren Sie den Inhalt in:
 **Data Flow Architecture:**
 - Shaw & Garlan (1996): "Software Architecture: Perspectives on an Emerging Discipline"
 
-## ✅ Checkliste für Vortrag
-
-Vor dem Vortrag:
-- [ ] Alle Diagramme in Mermaid Live getestet
-- [ ] Screenshots erstellt (falls Projektor Probleme macht)
-- [ ] Erklärung für jedes Diagramm vorbereitet (max. 2 Min pro Diagramm)
-- [ ] Übergänge zwischen Diagrammen geprobt
-
-Während des Vortrags:
-- [ ] Nicht zu lange bei einem Diagramm bleiben
-- [ ] Immer vom Allgemeinen zum Spezifischen
-- [ ] Fragen zwischendurch zulassen
-- [ ] Mit Live-Demo verbinden
-
-## 🎯 Kernbotschaften
-
-1. **MVC ist nicht nur Theorie** - Praktischer Nutzen in echten Projekten
-2. **Design für Wartbarkeit** - Code wird häufiger gelesen als geschrieben
-3. **Performance durch Architektur** - NumPy im Model ermöglicht Geschwindigkeit
-4. **Tests folgen Architektur** - Separation of Concerns macht Testing einfach
-
----
-
-**Tipp für die Präsentation:**
-Nicht alle Diagramme zeigen! Je nach Zeit und Publikum:
-- **Minimum**: architecture_diagram (MVC Übersicht)
-- **Standard**: architecture_diagram + sequence_diagram
-- **Ausführlich**: Alle 4 Diagramme
