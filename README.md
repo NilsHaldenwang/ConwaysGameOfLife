@@ -5,7 +5,7 @@ Eine didaktisch wertvolle Implementierung von Conway's Game of Life in Python, d
 ## Installation
 
 ### Voraussetzungen
-- Python 3.13 oder höher
+- Python 3.13 oder höher (hier erhältlich: https://www.python.org/downloads/)
 - pip (Python Package Manager)
 
 ### Installation der Abhängigkeiten
