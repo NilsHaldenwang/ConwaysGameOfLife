@@ -5,7 +5,7 @@ Eine didaktisch wertvolle Implementierung von Conway's Game of Life in Python, d
 ## Installation
 
 ### Voraussetzungen
-- Python 3.8 oder höher
+- Python 3.13 oder höher
 - pip (Python Package Manager)
 
 ### Installation der Abhängigkeiten
@@ -44,6 +44,8 @@ python test_game_of_life_controller.py
 - **Pause-Button**: Simulation anhalten
 - **Load-Button**: Muster aus Datei laden
 - **Clear-Button**: Spielfeld leeren
+- **Random-Button**: Spielfeld mit zufälliger Konfiguration füllen (Dichte kann angegeben werden)
+- **Speed Toggle-Button**: Simulationsgeschwindigkeit zwischen FPS-Stufen umschalten
 - **Klick auf Zellen** (nur im Pause-Modus): Zellen aktivieren/deaktivieren
 
 ### Tastatur-Shortcuts
@@ -117,11 +119,11 @@ conways-game-of-life/
 ├── test_game_of_life_controller.py # Unit-Tests für Controller
 ├── run_tests.py                     # Test-Runner
 │
-├── patterns/                        # Beispiel-Muster
+├── patterns/                       # Beispiel-Muster
 │   ├── glider.txt                  # Glider (bewegt sich)
 │   ├── blinker.txt                 # Blinker (Oszillator)
 │   ├── block.txt                   # Block (Still Life)
-│   └── toad.txt                    # Toad (Oszillator)
+│   └── gosper_glider_gun.txt       # Gosper Glider Gun (unendliches Wachstum)
 │
 ├── requirements.txt                 # Python-Abhängigkeiten
 └── README.md                        # Dokumentation
