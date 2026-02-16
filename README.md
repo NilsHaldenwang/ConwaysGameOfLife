@@ -160,7 +160,7 @@ neighbors[1:, :] += self.grid[:-1, :]   # Top neighbors
 # ... etc für alle 8 Richtungen
 ```
 
-Dies ist deutlich schneller als verschachtelte Schleifen (Faktor 50-100x bei großen Grids).
+Dies ist deutlich schneller als verschachtelte Schleifen (Faktor 150x bei 50x50 Grid, siehe benchmark_neighbor_counting.py).
 
 **Vergleich:**
 ```python
@@ -219,10 +219,12 @@ Im Verzeichnis `patterns/` sind Beispiel-Muster enthalten:
 
 ### Oszillatoren (periodisch)
 - **blinker.txt**: Blinker (Periode 2, horizontal ↔ vertikal)
-- **toad.txt**: Toad (Periode 2)
 
 ### Raumschiffe (bewegen sich)
 - **glider.txt**: Glider - bewegt sich diagonal
+
+### Gosper Glider Gun (unendliches Wachstum)
+- **gosper_glider_gun.txt**: Erzeugt periodisch Glider
 
 ### Format der Muster-Dateien
 
@@ -290,12 +292,7 @@ Die Architektur ermöglicht folgende Erweiterungen:
 ## Technische Details
 
 **Entwicklungsumgebung:**
-- Python 3.8+
+- Python 3.13+
 - NumPy für numerische Berechnungen
 - PyGame für Visualisierung
 - unittest für Testframework
-
-**Performance:**
-- Grid-Größe: bis zu 100×100 Zellen flüssig
-- Update-Rate: konfigurierbar (Standard: 10 FPS)
-- Speicher-Effizienz: NumPy Arrays mit dtype=int8
