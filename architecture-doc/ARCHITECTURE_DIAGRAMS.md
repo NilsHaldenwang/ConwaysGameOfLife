@@ -1,10 +1,8 @@
 # Architektur-Diagramme - Conway's Game of Life
 
-Diese Dokumentation erklärt die verschiedenen Architektur-Diagramme für das Conway's Game of Life Projekt.
+Diese Dokumentation erklärt das MVC-Architektur-Diagramm für das Conway's Game of Life Projekt.
 
-## 📊 Verfügbare Diagramme
-
-### 1. **architecture_diagram.mermaid** - MVC Übersicht
+## 📊 architecture_diagram.mermaid - MVC Übersicht
 Zeigt die grundlegende MVC-Architektur und die Hauptkomponenten.
 
 **Komponenten:**
@@ -13,38 +11,7 @@ Zeigt die grundlegende MVC-Architektur und die Hauptkomponenten.
 - 🟠 **View** (Orange): PyGame Visualisierung
 - ❌ Gestrichelte Linien: Keine direkte Kommunikation (Separation of Concerns)
 
-### 2. **component_diagram.mermaid** - Detaillierte Komponenten
-Zeigt die internen Komponenten jeder Schicht.
-
-**Komponenten:**
-- **Engine**: Grid State, Rules, Neighbor Counting, Pattern Loader
-- **View**: Grid Renderer, UI Renderer, Event Detection, Display
-- **Controller**: Event Handler, State Manager, Coordinator
-
-### 3. **sequence_diagram.mermaid** - Interaktionsablauf
-Zeigt die zeitliche Abfolge von Benutzeraktionen.
-
-**Dargestellte Szenarien:**
-1. Pattern laden
-2. Simulation starten
-3. Simulation läuft (Loop)
-4. Simulation pausieren
-5. Zelle manuell togglen
-6. Grid löschen
-
-### 4. **dataflow_diagram.mermaid** - Datenfluss
-Zeigt wie Daten durch das System fließen.
-
-**Datenfluss-Schritte:**
-1. User Input → Events
-2. Events → Commands
-3. Commands → Grid Manipulation
-4. Grid → Neighbor Calculation (NumPy)
-5. Neighbors → Rule Application
-6. New Grid → Rendering
-7. Rendering → Visual Output
-
-## 🎨 Farbcodierung (in allen Diagrammen konsistent)
+## 🎨 Farbcodierung
 
 - **🔵 Blau** = Controller-Komponenten
 - **🟢 Grün** = Model/Engine-Komponenten  
@@ -52,10 +19,10 @@ Zeigt wie Daten durch das System fließen.
 - **🔴 Rot** = User/External
 - **🟣 Lila** = External Resources (Dateien)
 
-## 📖 Diagramme anzeigen
+## 📖 Diagramm anzeigen
 
 ### In Markdown-Viewer (z.B. GitHub, VS Code)
-Die `.mermaid` Dateien werden automatisch gerendert in:
+Die `.mermaid` Datei wird automatisch gerendert in:
 - GitHub
 - GitLab
 - VS Code (mit Mermaid Extension)
@@ -67,10 +34,6 @@ Oder kopieren Sie den Inhalt in:
 - https://mermaid.live/
 - https://mermaid-js.github.io/mermaid-live-editor/
 
-### In Präsentation einbinden
-- Screenshot von Mermaid Live erstellen
-- In PowerPoint/Google Slides einfügen
-- Oder: Mermaid Plugin für Reveal.js nutzen
 
 ## � Design-Entscheidungen
 
