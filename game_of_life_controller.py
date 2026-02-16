@@ -310,9 +310,9 @@ class GameOfLifeController:
         """
         Cycle to the next preset simulation speed and apply it.
 
-        This method is invoked when the Speed button is clicked. It advances
-        an internal index into `self.speed_options`, updates `self.target_fps`,
-        and prints the new speed for user feedback.
+        Cycles through preset speeds (5, 10, 20, 30 FPS) defined in self.speed_options.
+        Invoked when the Speed button is clicked. Updates target_fps and prints
+        the new speed for user feedback.
         """
         self._speed_index = (self._speed_index + 1) % len(self.speed_options)
         new_fps = self.speed_options[self._speed_index]

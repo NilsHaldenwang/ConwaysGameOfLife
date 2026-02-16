@@ -314,18 +314,18 @@ class GameOfLifeView:
         # Randomize starting configuration
         self.draw_button(self.random_button, "Random")
         
-        # Draw generation counter and status. Position them on the right side
-        # of the UI, but if the button area reaches that region, shift the text
-        # to the right of the buttons to avoid overlapping. We clamp the final
-        # x coordinate to stay within the window.
+        # Draw generation counter and status on the right side of the UI.
+        # Calculate safe x position: if buttons extend far right, place text right of them;
+        # otherwise use the right side of the screen. Clamp to prevent overflow.
         gen_text = f"Generation: {generation}"
         gen_surface = self.small_font.render(gen_text, True, self.COLORS['button_text'])
 
-        # Determine a safe x position that does not overlap the rightmost button
+        # Determine x position: prefer right side (screen_width - 150) but shift right
+        # of buttons if they extend into that area (buttons_right + 10 pixels gap)
         buttons_right = getattr(self, 'random_button', getattr(self, 'speed_button', None)).right
         preferred_x = self.screen_width - 150
         safe_x = max(preferred_x, buttons_right + 10)
-        # Clamp so text remains visible
+        # Clamp to keep text visible within window
         safe_x = min(safe_x, self.screen_width - 150)
 
         self.screen.blit(gen_surface, (safe_x, ui_y + 10))
@@ -448,12 +448,11 @@ class GameOfLifeView:
 
     def ask_density(self, initial: float = 0.2) -> Optional[float]:
         """
-        Prompt the user for a density value (0.0 - 1.0) using a simple PyGame
-        modal dialog. Returns the chosen float or None if cancelled.
-
-        In headless/test environments (when SDL_VIDEODRIVER='dummy') this
-        method immediately returns the `initial` value so tests stay
-        deterministic.
+        Prompt the user for a density value (0.0 - 1.0) via a PyGame modal dialog.
+        
+        Returns the chosen float (clamped to 0.0-1.0) or None if cancelled.
+        In headless test environments (SDL_VIDEODRIVER='dummy'), returns the
+        initial value immediately for deterministic testing.
         """
         # Fast-path for headless tests
         if os.environ.get('SDL_VIDEODRIVER') == 'dummy':
