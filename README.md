@@ -274,20 +274,27 @@ Die Architektur ermöglicht folgende Erweiterungen:
    - Step-by-Step Modus
    - Verschiedene Farbschemata
 
-## Literatur
+## Literatur (IEEE)
 
 ### Design Patterns und Software-Architektur
-- Gamma, E., Helm, R., Johnson, R., & Vlissides, J. (1994). *Design Patterns: Elements of Reusable Object-Oriented Software*. Addison-Wesley.
-- Martin, R. C. (2008). *Clean Code: A Handbook of Agile Software Craftsmanship*. Prentice Hall.
-- Martin, R. C. (2017). *Clean Architecture: A Craftsman's Guide to Software Structure and Design*. Prentice Hall.
+[1] E. Gamma, R. Helm, R. Johnson, and J. Vlissides, *Design Patterns: Elements of Reusable Object-Oriented Software*. Reading, MA, USA: Addison-Wesley, 1994.
 
-### Conway's Game of Life
-- Gardner, M. (1970). "Mathematical Games: The fantastic combinations of John Conway's new solitaire game 'life'". *Scientific American*, 223(4), 120-123.
-- Berlekamp, E. R., Conway, J. H., & Guy, R. K. (1982). *Winning Ways for Your Mathematical Plays, Volume 2*. Academic Press.
+[2] R. C. Martin, *Clean Code: A Handbook of Agile Software Craftsmanship*. Upper Saddle River, NJ, USA: Prentice Hall PTR, 2008.
+
+[3] R. C. Martin, *Clean Architecture: A Craftsman’s Guide to Software Structure and Design*. Boston, MA, USA: Pearson, 2017.
+
+### Conway’s Game of Life
+[4] M. Gardner, “Mathematical Games: The fantastic combinations of John Conway’s new solitaire game ‘life’,” *Scientific American*, vol. 223, no. 4, pp. 120–123, Oct. 1970.
+
+[5] E. R. Berlekamp, J. H. Conway, and R. K. Guy, *Winning Ways for Your Mathematical Plays*, vol. 2. London, U.K.; New York, NY, USA: Academic Press, 1982.
 
 ### Online-Ressourcen
-- ConwayLife.com Wiki - Umfassende Muster-Sammlung
-- LifeWiki Pattern Collection - Dokumentation bekannter Muster
+[6] ConwayLife.com Wiki Contributors, “ConwayLife.com Wiki – Main Page.” [Online]. Available: https://conwaylife.com/wiki/Main_Page. [Accessed: Feb. 16, 2026].
+
+[7] ConwayLife.com Wiki Contributors, “Pattern Library – The Game of Life.” [Online]. Available: https://conwaylife.appspot.com/library/. [Accessed: Feb. 16, 2026].
+``
+::contentReference[oaicite:0]{index=0}
+
 
 ## Technische Details
 
