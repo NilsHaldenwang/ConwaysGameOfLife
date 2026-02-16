@@ -109,7 +109,7 @@ Die Anwendung folgt dem **Model-View-Controller (MVC)** Pattern:
 ```
 conways-game-of-life/
 │
-├── main.py                          # Haupteinstiegspunkt
+├── main.py                         # Haupteinstiegspunkt
 ├── game_of_life_engine.py          # Model: Spiellogik mit NumPy
 ├── game_of_life_view.py            # View: PyGame Visualisierung
 ├── game_of_life_controller.py      # Controller: Koordination & Input
@@ -117,7 +117,7 @@ conways-game-of-life/
 ├── test_game_of_life_engine.py     # Unit-Tests für Engine
 ├── test_game_of_life_view.py       # Unit-Tests für View
 ├── test_game_of_life_controller.py # Unit-Tests für Controller
-├── run_tests.py                     # Test-Runner
+├── run_tests.py                    # Test-Runner
 │
 ├── patterns/                       # Beispiel-Muster
 │   ├── glider.txt                  # Glider (bewegt sich)
@@ -125,8 +125,8 @@ conways-game-of-life/
 │   ├── block.txt                   # Block (Still Life)
 │   └── gosper_glider_gun.txt       # Gosper Glider Gun (unendliches Wachstum)
 │
-├── requirements.txt                 # Python-Abhängigkeiten
-└── README.md                        # Dokumentation
+├── requirements.txt                # Python-Abhängigkeiten
+└── README.md                       # Dokumentation
 ```
 
 ## Conway's Game of Life - Regeln
