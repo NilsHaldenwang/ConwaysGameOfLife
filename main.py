@@ -22,19 +22,25 @@ def main():
     
     Initializes the controller and starts the game loop.
     """
-    # Create the controller (which initializes model and view)
-    # Starting with a 50x50 grid with 15-pixel cells
-    controller = GameOfLifeController(
-        initial_rows=50,
-        initial_cols=50,
-        cell_size=15
-    )
-    
-    # Set simulation speed (10 generations per second)
-    controller.set_simulation_speed(10)
-    
-    # Run the application
-    controller.run()
+    try:
+        # Create the controller (which initializes model and view)
+        # Starting with a 50x50 grid with 15-pixel cells
+        controller = GameOfLifeController(
+            initial_rows=50,
+            initial_cols=50,
+            cell_size=15
+        )
+        
+        # Set simulation speed (10 generations per second)
+        controller.set_simulation_speed(10)
+        
+        # Run the application
+        controller.run()
+    except KeyboardInterrupt:
+        # Handle Ctrl+C gracefully
+        print("\nApplication interrupted by user.")
+        import pygame
+        pygame.quit()
 
 
 if __name__ == "__main__":
