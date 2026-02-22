@@ -64,7 +64,7 @@ class GameOfLifeController:
         
         # Simulation speed (steps per second)
         # Preset speed options that the Speed button will cycle through.
-        self.speed_options = [5, 10, 20, 30]
+        self.speed_options = [1, 5, 10, 20, 30]
         # Default to 10 FPS if available
         self.target_fps = 10
         try:
@@ -278,23 +278,24 @@ class GameOfLifeController:
         print("  - ESC: Pause simulation")
         print("=" * 50)
         
-        # Main event loop: repeat until running is False
-        while running:
-            # Process user input (keyboard / mouse / window events)
-            running = self.handle_events()
+        try:
+            # Main event loop: repeat until running is False
+            while running:
+                # Process user input (keyboard / mouse / window events)
+                running = self.handle_events()
 
-            # Advance simulation if it's running
-            self.update()
+                # Advance simulation if it's running
+                self.update()
 
-            # Render current state to the window
-            self.render()
+                # Render current state to the window
+                self.render()
 
-            # Wait to enforce the target frames-per-second / simulation speed
-            self.view.tick(self.target_fps)
-        
-        # Cleanup when application closes
-        self.view.cleanup()
-        print("Application closed. Thank you!")
+                # Wait to enforce the target frames-per-second / simulation speed
+                self.view.tick(self.target_fps)
+        finally:
+            # Cleanup when application closes (even if an exception occurs)
+            self.view.cleanup()
+            print("Application closed. Thank you!")
     
     def set_simulation_speed(self, fps: int) -> None:
         """
@@ -310,7 +311,7 @@ class GameOfLifeController:
         """
         Cycle to the next preset simulation speed and apply it.
 
-        Cycles through preset speeds (5, 10, 20, 30 FPS) defined in self.speed_options.
+        Cycles through preset speeds (1, 5, 10, 20, 30 FPS) defined in self.speed_options.
         Invoked when the Speed button is clicked. Updates target_fps and prints
         the new speed for user feedback.
         """
